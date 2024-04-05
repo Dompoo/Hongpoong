@@ -1,5 +1,6 @@
 package Dompoo.Hongpoong.controller;
 
+import Dompoo.Hongpoong.domain.Member;
 import Dompoo.Hongpoong.repository.MemberRepository;
 import Dompoo.Hongpoong.request.auth.SignupRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -153,6 +154,33 @@ class AuthControllerTest {
                         .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("[비밀번호확인은 비어있을 수 없습니다.]"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("회원가입시 유저명은 중복되면 안된다.")
+    void signupFail5() throws Exception {
+        //given
+        repository.save(Member.builder()
+                .username("창근")
+                .password("1234")
+                .build());
+
+        SignupRequest request = SignupRequest.builder()
+                .username("창근")
+                .password1("abcd")
+                .password2("abcd")
+                .build();
+
+        String json = objectMapper.writeValueAsString(request);
+
+        //expected
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("이미 존재하는 유저명입니다."))
+                .andExpect(jsonPath("$.code").value("400"))
                 .andDo(print());
     }
 }
