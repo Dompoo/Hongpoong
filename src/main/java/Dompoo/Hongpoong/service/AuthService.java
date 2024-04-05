@@ -1,6 +1,7 @@
 package Dompoo.Hongpoong.service;
 
 import Dompoo.Hongpoong.domain.Member;
+import Dompoo.Hongpoong.exception.AlreadyExistsUsername;
 import Dompoo.Hongpoong.exception.PasswordNotCorrect;
 import Dompoo.Hongpoong.repository.MemberRepository;
 import Dompoo.Hongpoong.request.auth.SignupRequest;
@@ -18,6 +19,10 @@ public class AuthService {
     public void signup(SignupRequest request) {
         if (!Objects.equals(request.getPassword1(), request.getPassword2())) {
             throw new PasswordNotCorrect();
+        }
+
+        if (repository.findByUsername(request.getUsername()).isPresent()) {
+            throw new AlreadyExistsUsername();
         }
 
         repository.save(Member.builder()
