@@ -1,5 +1,7 @@
 package Dompoo.Hongpoong.service;
 
+import Dompoo.Hongpoong.domain.Member;
+import Dompoo.Hongpoong.exception.AlreadyExistsUsername;
 import Dompoo.Hongpoong.exception.PasswordNotCorrect;
 import Dompoo.Hongpoong.repository.MemberRepository;
 import Dompoo.Hongpoong.request.auth.SignupRequest;
@@ -62,6 +64,31 @@ class AuthServiceTest {
         //then
         assertEquals(e.statusCode(), "400");
         assertEquals(e.getMessage(), "비밀번호가 일치하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("회원가입시 유저명은 중복되면 안된다.")
+    void signupFail1() {
+        //given
+        repository.save(Member.builder()
+                .username("창근")
+                .password("1234")
+                .build());
+
+        SignupRequest request = SignupRequest.builder()
+                .username("창근")
+                .password1("abcd")
+                .password2("abcd")
+                .build();
+
+        //when
+        AlreadyExistsUsername e = assertThrows(AlreadyExistsUsername.class, () ->
+                service.signup(request));
+
+
+        //then
+        assertEquals(e.statusCode(), "400");
+        assertEquals(e.getMessage(), "이미 존재하는 유저명입니다.");
     }
 
 }
