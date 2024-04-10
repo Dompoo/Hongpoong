@@ -6,6 +6,7 @@ import Dompoo.Hongpoong.exception.PasswordNotCorrect;
 import Dompoo.Hongpoong.repository.MemberRepository;
 import Dompoo.Hongpoong.request.auth.SignupRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -15,6 +16,7 @@ import java.util.Objects;
 public class AuthService {
 
     private final MemberRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
     public void signup(SignupRequest request) {
         if (!Objects.equals(request.getPassword1(), request.getPassword2())) {
@@ -27,7 +29,7 @@ public class AuthService {
 
         repository.save(Member.builder()
                 .username(request.getUsername())
-                .password(request.getPassword1())
+                .password(passwordEncoder.encode(request.getPassword1()))
                 .build());
     }
 }
