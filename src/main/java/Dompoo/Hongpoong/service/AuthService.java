@@ -28,6 +28,7 @@ public class AuthService {
         }
 
         repository.save(Member.builder()
+                .email(request.getEmail())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword1()))
                 .build());
