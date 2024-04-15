@@ -1,13 +1,15 @@
 package Dompoo.Hongpoong.config;
 
-import Dompoo.Hongpoong.config.handler.Http401Handler;
-import Dompoo.Hongpoong.config.handler.Http403Handler;
-import Dompoo.Hongpoong.config.handler.LoginFailHandler;
+import Dompoo.Hongpoong.config.handler.*;
 import Dompoo.Hongpoong.domain.Member;
 import Dompoo.Hongpoong.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -17,20 +19,28 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
+import org.springframework.session.security.web.authentication.SpringSessionRememberMeServices;
 
 import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
+import static org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final MemberRepository memberRepository;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return web -> web.ignoring()
-                .requestMatchers("/favicon.ico")
                 .requestMatchers("/error")
-                .requestMatchers(toH2Console());
+                .requestMatchers(toH2Console())
+                .requestMatchers("/favicon.ico");
     }
 
     @Bean
@@ -39,31 +49,59 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/signup").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                .formLogin(login -> login
-                        .loginPage("/auth/login")
-                        .loginProcessingUrl("/auth/login")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .defaultSuccessUrl("/")
-                        .failureHandler(new LoginFailHandler()))
+                        .requestMatchers("/auth/email").permitAll()
+                        .requestMatchers("/auth/email/accept").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .csrf(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers.addHeaderWriter(new XFrameOptionsHeaderWriter(SAMEORIGIN)))
+                .addFilterBefore(emailPasswordAuthFilter(), UsernamePasswordAuthenticationFilter.class)
+                .rememberMe(rm -> rm
+                        .rememberMeParameter("remember-me")
+                        .alwaysRemember(true)
+                        .tokenValiditySeconds(2592000)
+                        .userDetailsService(userDetailsService(memberRepository)))
                 .exceptionHandling(e -> e
                         .accessDeniedHandler(new Http403Handler())
                         .authenticationEntryPoint(new Http401Handler()))
-                .rememberMe(rm -> rm
-                        .rememberMeParameter("remember")
-                        .alwaysRemember(false)
-                        .tokenValiditySeconds(2592000))
-                .csrf(AbstractHttpConfigurer::disable)
+                .logout((logout) -> logout
+                        .logoutUrl("auth/logout")
+                        .deleteCookies("JSESSIONID", "remember-me")
+                        .logoutSuccessHandler(new LogoutSuccessHandler())
+                )
                 .build();
     }
 
     @Bean
+    public EmailPasswordAuthFilter emailPasswordAuthFilter() {
+        EmailPasswordAuthFilter filter = new EmailPasswordAuthFilter("/auth/login");
+        filter.setAuthenticationManager(authenticationManager());
+        filter.setAuthenticationFailureHandler(new LoginFailHandler());
+        filter.setAuthenticationSuccessHandler(new LoginSuccessHandler());
+        filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
+
+        SpringSessionRememberMeServices rememberMeServices = new SpringSessionRememberMeServices();
+        rememberMeServices.setAlwaysRemember(true);
+        rememberMeServices.setValiditySeconds(2592000);
+        filter.setRememberMeServices(rememberMeServices);
+
+        return filter;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService(memberRepository));
+        provider.setPasswordEncoder(passwordEncoder());
+
+        return new ProviderManager(provider);
+    }
+
+    @Bean
     public UserDetailsService userDetailsService(MemberRepository memberRepository) {
-        return username -> {
-            Member member = memberRepository.findByUsername(username)
-                    .orElseThrow(() -> new UsernameNotFoundException(username + "을 찾을 수 없습니다."));
+        return email -> {
+            Member member = memberRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException(email + "을 찾을 수 없습니다."));
 
             return new UserPrincipal(member);
         };

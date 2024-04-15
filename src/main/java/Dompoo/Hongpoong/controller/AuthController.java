@@ -28,12 +28,14 @@ public class AuthController {
         service.addEmail(request);
     }
 
+//    @PreAuthorize("hasRole('ROLE_ADMIN')")
     //관리자 API
     @PostMapping("/email/accept")
     public void acceptEmail(@RequestBody @Valid AcceptEmailRequest request) {
         service.acceptEmail(request);
     }
 
+//    @PreAuthorize("hasRole('ROLE_ADMIN')")
     //관리자 API
     @GetMapping("/email")
     public List<EmailResponse> emailRequestList() {
