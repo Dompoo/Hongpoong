@@ -8,13 +8,18 @@ import Dompoo.Hongpoong.repository.WhitelistRepository;
 import Dompoo.Hongpoong.request.auth.AcceptEmailRequest;
 import Dompoo.Hongpoong.request.auth.AddEmailRequest;
 import Dompoo.Hongpoong.request.auth.SignupRequest;
+import Dompoo.Hongpoong.response.EmailResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AuthService {
 
@@ -61,5 +66,11 @@ public class AuthService {
         } else {
             whitelistRepository.delete(whitelist);
         }
+    }
+
+    public List<EmailResponse> getEmailList() {
+        return whitelistRepository.findAll()
+                .stream().map(EmailResponse::new)
+                .collect(Collectors.toList());
     }
 }

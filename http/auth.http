@@ -1,37 +1,39 @@
-### 로그인
+### 이메일 추가 요청
+POST http://localhost:8080/auth/email
+Content-Type: application/json
 
-POST http://localhost:8080/auth/login
-Content-Type: application/x-www-form-urlencoded
+{
+  "email": "dompoo@gmail.com"
+}
 
-username=dompoo&password=1234&remember-me=1
+### 이메일 추가 승인
+POST http://localhost:8080/auth/email/accept
+Content-Type: application/json
 
+{
+  "id": 1,
+  "acceptResult": true
+}
 
 ### 회원가입
 POST http://localhost:8080/auth/signup
 Content-Type: application/json
 
 {
-  "username": "dompoo",
+  "email": "dompoo@gmail.com",
+  "username": "이창근",
   "password1": "1234",
   "password2": "1234"
 }
 
+### 로그인
+POST http://localhost:8080/auth/login
+Content-Type: application/json
 
-### 메인페이지
-
-GET http://localhost:8080
-
-
-### 사용자페이지
-
-GET http://localhost:8080/user
-
-
-### 관리자페이지
-
-GET http://localhost:8080/admin
+{
+  "email": "dompoo@gmail.com",
+  "password": "1234"
+}
 
 
-### 기본
 
-GET http://localhost:8080/reservation

@@ -3,13 +3,13 @@ package Dompoo.Hongpoong.controller;
 import Dompoo.Hongpoong.request.auth.AcceptEmailRequest;
 import Dompoo.Hongpoong.request.auth.AddEmailRequest;
 import Dompoo.Hongpoong.request.auth.SignupRequest;
+import Dompoo.Hongpoong.response.EmailResponse;
 import Dompoo.Hongpoong.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,13 +24,19 @@ public class AuthController {
     }
 
     @PostMapping("/email")
-    public void requstEmail(@RequestBody @Valid AddEmailRequest request) {
+    public void requestEmail(@RequestBody @Valid AddEmailRequest request) {
         service.addEmail(request);
     }
 
     //관리자 API
-    @PostMapping("/manage/email")
+    @PostMapping("/email/accept")
     public void acceptEmail(@RequestBody @Valid AcceptEmailRequest request) {
         service.acceptEmail(request);
+    }
+
+    //관리자 API
+    @GetMapping("/email")
+    public List<EmailResponse> emailRequestList() {
+        return service.getEmailList();
     }
 }

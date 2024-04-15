@@ -1,0 +1,11 @@
+### 메인페이지
+POST http://localhost:8080
+
+### 사용자페이지
+GET http://localhost:8080/user
+
+### 관리자페이지
+GET http://localhost:8080/admin
+
+### 기본
+GET http://localhost:8080/reservation
