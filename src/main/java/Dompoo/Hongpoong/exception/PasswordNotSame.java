@@ -1,11 +1,11 @@
 package Dompoo.Hongpoong.exception;
 
-public class NotAcceptedUser extends MyException {
+public class PasswordNotSame extends MyException {
 
-    private static final String MESSAGE = "승인되지 않은 유저입니다.";
+    private static final String MESSAGE = "비밀번호와 비밀번호 확인이 일치하지 않습니다.";
     private static final String STATUS_CODE = "400";
 
-    public NotAcceptedUser() {
+    public PasswordNotSame() {
         super(MESSAGE);
     }
 
