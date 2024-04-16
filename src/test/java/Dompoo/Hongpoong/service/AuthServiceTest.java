@@ -239,11 +239,13 @@ class AuthServiceTest {
     void signupFail4() {
         //given
         memberRepository.save(Member.builder()
+                .email("dompoo@gmail.com")
                 .username("창근")
                 .password("1234")
                 .build());
 
         SignupRequest request = SignupRequest.builder()
+                .email("dompoo2@gmail.com")
                 .username("창근")
                 .password1("abcd")
                 .password2("abcd")
