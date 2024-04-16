@@ -1,5 +1,6 @@
 package Dompoo.Hongpoong.controller;
 
+import Dompoo.Hongpoong.config.UserPrincipal;
 import Dompoo.Hongpoong.request.reservation.ReservationCreateRequest;
 import Dompoo.Hongpoong.request.reservation.ReservationEditRequest;
 import Dompoo.Hongpoong.request.reservation.ReservationShiftRequest;
@@ -24,8 +25,8 @@ public class ReservationController {
     }
 
     @PostMapping("")
-    public MenuResponse addReservation(@RequestBody @Valid ReservationCreateRequest request) {
-        return service.addReservation(request);
+    public MenuResponse addReservation(UserPrincipal principal, @RequestBody @Valid ReservationCreateRequest request) {
+        return service.addReservation(principal.getMemberId(), request);
     }
 
     @GetMapping("/{id}")

@@ -1,8 +1,11 @@
 package Dompoo.Hongpoong.service;
 
+import Dompoo.Hongpoong.domain.Member;
 import Dompoo.Hongpoong.domain.Reservation;
+import Dompoo.Hongpoong.exception.MemberNotFound;
 import Dompoo.Hongpoong.exception.ReservationAheadShiftFail;
 import Dompoo.Hongpoong.exception.ReservationNotFound;
+import Dompoo.Hongpoong.repository.MemberRepository;
 import Dompoo.Hongpoong.repository.ReservationRepository;
 import Dompoo.Hongpoong.request.reservation.ReservationCreateRequest;
 import Dompoo.Hongpoong.request.reservation.ReservationEditRequest;
@@ -27,26 +30,34 @@ class ReservationServiceTest {
     @Autowired
     private ReservationService service;
     @Autowired
-    private ReservationRepository repository;
+    private ReservationRepository reservationRepository;
+    @Autowired
+    private MemberRepository memberRepository;
 
     @BeforeEach
     void setUp() {
-        repository.deleteAll();
+        reservationRepository.deleteAll();
     }
 
     @Test
     @DisplayName("예약 리스트 조회")
     void list() {
         //given
-        Reservation reservation1 = repository.save(Reservation.builder()
-                .member("member1")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        Reservation reservation1 = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
                 .build());
 
-        Reservation reservation2 = repository.save(Reservation.builder()
-                .member("member1")
+        Reservation reservation2 = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
@@ -59,8 +70,8 @@ class ReservationServiceTest {
         assertEquals(2, list.size());
         assertEquals(list.get(0).getId(), reservation1.getId());
         assertEquals(list.get(1).getId(), reservation2.getId());
-        assertEquals(list.get(0).getMember(), reservation1.getMember());
-        assertEquals(list.get(1).getMember(), reservation2.getMember());
+        assertEquals(list.get(0).getUsername(), reservation1.getMember().getUsername());
+        assertEquals(list.get(1).getUsername(), reservation2.getMember().getUsername());
         assertEquals(list.get(0).getDate(), reservation1.getDate());
         assertEquals(list.get(1).getDate(), reservation2.getDate());
         assertEquals(list.get(0).getTime(), reservation1.getTime());
@@ -73,26 +84,62 @@ class ReservationServiceTest {
     @DisplayName("예약 추가")
     void add() {
         //given
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
         ReservationCreateRequest request = ReservationCreateRequest.builder()
-                .member("member1")
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .build();
 
         //when
-        MenuResponse response = service.addReservation(request);
+        MenuResponse response = service.addReservation(member.getId(), request);
 
         //then
-        assertEquals(1, repository.count());
-        assertEquals(response.getId(), repository.findAll().getFirst().getId());
+        assertEquals(1, reservationRepository.count());
+        assertEquals(response.getId(), reservationRepository.findAll().getFirst().getId());
+    }
+
+    @Test
+    @DisplayName("예약 추가 실패")
+    void addFail() {
+        //given
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        ReservationCreateRequest request = ReservationCreateRequest.builder()
+                .date(LocalDate.of(2000, 12, 20))
+                .time(12)
+                .build();
+
+        //when
+        MemberNotFound e = assertThrows(MemberNotFound.class,
+                () -> service.addReservation(member.getId() + 1, request));
+
+
+        //then
+        assertEquals(e.getMessage(), "존재하지 않는 유저입니다.");
+        assertEquals(e.statusCode(), "404");
     }
 
     @Test
     @DisplayName("예약 상세")
     void detail() {
         //given
-        Reservation reservation = repository.save(Reservation.builder()
-                .member("member1")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
@@ -103,7 +150,7 @@ class ReservationServiceTest {
 
         //then
         assertEquals(response.getId(), reservation.getId());
-        assertEquals(response.getMember(), "member1");
+        assertEquals(response.getUsername(), "창근");
         assertEquals(response.getDate(), LocalDate.of(2000, 12, 20));
         assertEquals(response.getTime(), 12);
         assertEquals(response.getPriority(), 1);
@@ -113,8 +160,14 @@ class ReservationServiceTest {
     @DisplayName("예약 상세 실패")
     void detailFail() {
         //given
-        Reservation reservation = repository.save(Reservation.builder()
-                .member("member1")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
@@ -133,32 +186,38 @@ class ReservationServiceTest {
     @DisplayName("예약 우선순위 변경")
     void shift() {
         //given
-        Reservation reservation1 = repository.save(Reservation.builder()
-                .member("member1")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        Reservation reservation1 = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
                 .build());
-        Reservation reservation2 = repository.save(Reservation.builder()
-                .member("member2")
+        Reservation reservation2 = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(2)
                 .build());
-        Reservation reservation3 = repository.save(Reservation.builder()
-                .member("member3")
+        Reservation reservation3 = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(3)
                 .build());
-        Reservation reservation4 = repository.save(Reservation.builder()
-                .member("member4")
+        Reservation reservation4 = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(4)
                 .build());
-        Reservation reservation5 = repository.save(Reservation.builder()
-                .member("member5")
+        Reservation reservation5 = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(5)
@@ -172,19 +231,26 @@ class ReservationServiceTest {
         service.shiftReservation(reservation2.getId(), request);
 
         //then
-        assertEquals(repository.findById(reservation1.getId()).get().getPriority(), 1);
-        assertEquals(repository.findById(reservation2.getId()).get().getPriority(), 4);
-        assertEquals(repository.findById(reservation3.getId()).get().getPriority(), 2);
-        assertEquals(repository.findById(reservation4.getId()).get().getPriority(), 3);
-        assertEquals(repository.findById(reservation5.getId()).get().getPriority(), 5);
+        assertEquals(reservationRepository.findById(reservation1.getId()).get().getPriority(), 1);
+        assertEquals(reservationRepository.findById(reservation2.getId()).get().getPriority(), 4);
+        assertEquals(reservationRepository.findById(reservation3.getId()).get().getPriority(), 2);
+        assertEquals(reservationRepository.findById(reservation4.getId()).get().getPriority(), 3);
+        assertEquals(reservationRepository.findById(reservation5.getId()).get().getPriority(), 5);
     }
 
     @Test
     @DisplayName("예약 우선순위 변경 실패")
     void shiftFail1() {
         //given
-        Reservation reservation = repository.save(Reservation.builder()
-                .member("member2")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(2)
@@ -207,8 +273,15 @@ class ReservationServiceTest {
     @DisplayName("예약 현재의 우선순위보다 앞으로 변경 실패")
     void shiftFail2() {
         //given
-        Reservation reservation = repository.save(Reservation.builder()
-                .member("member2")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(2)
@@ -231,8 +304,15 @@ class ReservationServiceTest {
     @DisplayName("예약 수정")
     void edit() {
         //given
-        Reservation reservation = repository.save(Reservation.builder()
-                .member("member1")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
@@ -247,9 +327,9 @@ class ReservationServiceTest {
         service.editReservation(reservation.getId(), request);
 
         //then
-        Reservation find = assertDoesNotThrow(() -> repository.findById(reservation.getId())
+        Reservation find = assertDoesNotThrow(() -> reservationRepository.findById(reservation.getId())
                 .orElseThrow());
-        assertEquals(find.getMember(), "member1");
+        assertEquals(find.getMember().getId(), member.getId());
         assertEquals(find.getDate(), LocalDate.of(2000, 12, 15));
         assertEquals(find.getTime(), 13);
         assertEquals(find.getPriority(), 1);
@@ -259,8 +339,15 @@ class ReservationServiceTest {
     @DisplayName("예약 수정 실패")
     void editFail() {
         //given
-        Reservation reservation = repository.save(Reservation.builder()
-                .member("member1")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
@@ -284,8 +371,15 @@ class ReservationServiceTest {
     @DisplayName("예약 삭제")
     void delete() {
         //given
-        Reservation reservation = repository.save(Reservation.builder()
-                .member("member1")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
@@ -295,15 +389,21 @@ class ReservationServiceTest {
         service.deleteReservation(reservation.getId());
 
         //then
-        assertEquals(repository.count(), 0);
+        assertEquals(reservationRepository.count(), 0);
     }
 
     @Test
     @DisplayName("예약 삭제 실패")
     void deleteFail() {
         //given
-        Reservation reservation = repository.save(Reservation.builder()
-                .member("member1")
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
                 .date(LocalDate.of(2000, 12, 20))
                 .time(12)
                 .priority(1)
