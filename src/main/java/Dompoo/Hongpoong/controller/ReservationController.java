@@ -35,17 +35,17 @@ public class ReservationController {
     }
 
     @PostMapping("/{id}")
-    public void shiftReservation(@PathVariable Long id, @RequestBody @Valid ReservationShiftRequest request) {
-        service.shiftReservation(id, request);
+    public void shiftReservation(UserPrincipal principal, @PathVariable Long id, @RequestBody @Valid ReservationShiftRequest request) {
+        service.shiftReservation(principal.getMemberId(), id, request);
     }
 
     @PatchMapping("/{id}")
-    public void editReservation(@PathVariable Long id, @RequestBody @Valid ReservationEditRequest request) {
-        service.editReservation(id, request);
+    public void editReservation(UserPrincipal principal, @PathVariable Long id, @RequestBody @Valid ReservationEditRequest request) {
+        service.editReservation(principal.getMemberId(), id, request);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteReservation(@PathVariable Long id) {
-        service.deleteReservation(id);
+    public void deleteReservation(UserPrincipal principal, @PathVariable Long id) {
+        service.deleteReservation(principal.getMemberId(), id);
     }
 }

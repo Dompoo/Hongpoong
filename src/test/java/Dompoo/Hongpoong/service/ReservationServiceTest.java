@@ -2,9 +2,7 @@ package Dompoo.Hongpoong.service;
 
 import Dompoo.Hongpoong.domain.Member;
 import Dompoo.Hongpoong.domain.Reservation;
-import Dompoo.Hongpoong.exception.MemberNotFound;
-import Dompoo.Hongpoong.exception.ReservationAheadShiftFail;
-import Dompoo.Hongpoong.exception.ReservationNotFound;
+import Dompoo.Hongpoong.exception.*;
 import Dompoo.Hongpoong.repository.MemberRepository;
 import Dompoo.Hongpoong.repository.ReservationRepository;
 import Dompoo.Hongpoong.request.reservation.ReservationCreateRequest;
@@ -228,7 +226,7 @@ class ReservationServiceTest {
                 .build();
 
         //when
-        service.shiftReservation(reservation2.getId(), request);
+        service.shiftReservation(member.getId(), reservation2.getId(), request);
 
         //then
         assertEquals(reservationRepository.findById(reservation1.getId()).get().getPriority(), 1);
@@ -239,7 +237,7 @@ class ReservationServiceTest {
     }
 
     @Test
-    @DisplayName("예약 우선순위 변경 실패")
+    @DisplayName("존재하지 않는 예약 우선순위 변경 실패")
     void shiftFail1() {
         //given
         Member member = memberRepository.save(Member.builder()
@@ -247,7 +245,6 @@ class ReservationServiceTest {
                 .email("dompoo@gmail.com")
                 .password("1234")
                 .build());
-
 
         Reservation reservation = reservationRepository.save(Reservation.builder()
                 .member(member)
@@ -262,7 +259,7 @@ class ReservationServiceTest {
 
         //when
         ReservationNotFound e = assertThrows(ReservationNotFound.class, () ->
-                service.shiftReservation(reservation.getId() + 1, request));
+                service.shiftReservation(member.getId(), reservation.getId() + 1, request));
 
         //then
         assertEquals(e.getMessage(), "존재하지 않는 예약입니다.");
@@ -279,7 +276,6 @@ class ReservationServiceTest {
                 .password("1234")
                 .build());
 
-
         Reservation reservation = reservationRepository.save(Reservation.builder()
                 .member(member)
                 .date(LocalDate.of(2000, 12, 20))
@@ -293,10 +289,40 @@ class ReservationServiceTest {
 
         //when
         ReservationAheadShiftFail e = assertThrows(ReservationAheadShiftFail.class, () ->
-                service.shiftReservation(reservation.getId(), request));
+                service.shiftReservation(member.getId(), reservation.getId(), request));
 
         //then
         assertEquals(e.getMessage(), "현재 우선순위보다 높습니다.");
+        assertEquals(e.statusCode(), "400");
+    }
+
+    @Test
+    @DisplayName("예약자가 아닌 유저가 예약 우선순위 변경 시도시 실패")
+    void shiftFail3() {
+        //given
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
+                .date(LocalDate.of(2000, 12, 20))
+                .time(12)
+                .priority(2)
+                .build());
+
+        ReservationShiftRequest request = ReservationShiftRequest.builder()
+                .priority(4)
+                .build();
+
+        //when
+        EditFailException e = assertThrows(EditFailException.class, () ->
+                service.shiftReservation(member.getId() + 1, reservation.getId(), request));
+
+        //then
+        assertEquals(e.getMessage(), "수정할 수 없습니다.");
         assertEquals(e.statusCode(), "400");
     }
 
@@ -309,7 +335,6 @@ class ReservationServiceTest {
                 .email("dompoo@gmail.com")
                 .password("1234")
                 .build());
-
 
         Reservation reservation = reservationRepository.save(Reservation.builder()
                 .member(member)
@@ -324,7 +349,7 @@ class ReservationServiceTest {
                 .build();
 
         //when
-        service.editReservation(reservation.getId(), request);
+        service.editReservation(member.getId(), reservation.getId(), request);
 
         //then
         Reservation find = assertDoesNotThrow(() -> reservationRepository.findById(reservation.getId())
@@ -345,7 +370,6 @@ class ReservationServiceTest {
                 .password("1234")
                 .build());
 
-
         Reservation reservation = reservationRepository.save(Reservation.builder()
                 .member(member)
                 .date(LocalDate.of(2000, 12, 20))
@@ -360,11 +384,42 @@ class ReservationServiceTest {
 
         //when
         ReservationNotFound e = assertThrows(ReservationNotFound.class, () ->
-                service.editReservation(reservation.getId() + 1, request));
+                service.editReservation(member.getId(), reservation.getId() + 1, request));
 
         //then
         assertEquals(e.getMessage(), "존재하지 않는 예약입니다.");
         assertEquals(e.statusCode(), "404");
+    }
+
+    @Test
+    @DisplayName("예약자가 아닌 유저가 예약 수정 시도시 실패")
+    void editFai2() {
+        //given
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
+                .date(LocalDate.of(2000, 12, 20))
+                .time(12)
+                .priority(1)
+                .build());
+
+        ReservationEditRequest request = ReservationEditRequest.builder()
+                .date(LocalDate.of(2000, 12, 15))
+                .time(13)
+                .build();
+
+        //when
+        EditFailException e = assertThrows(EditFailException.class, () ->
+                service.editReservation(member.getId() + 1, reservation.getId(), request));
+
+        //then
+        assertEquals(e.getMessage(), "수정할 수 없습니다.");
+        assertEquals(e.statusCode(), "400");
     }
 
     @Test
@@ -386,7 +441,7 @@ class ReservationServiceTest {
                 .build());
 
         //when
-        service.deleteReservation(reservation.getId());
+        service.deleteReservation(member.getId(), reservation.getId());
 
         //then
         assertEquals(reservationRepository.count(), 0);
@@ -411,10 +466,36 @@ class ReservationServiceTest {
 
         //when
         ReservationNotFound e = assertThrows(ReservationNotFound.class, () ->
-                service.deleteReservation(reservation.getId() + 1));
+                service.deleteReservation(member.getId(), reservation.getId() + 1));
 
         //then
         assertEquals(e.getMessage(), "존재하지 않는 예약입니다.");
         assertEquals(e.statusCode(), "404");
+    }
+
+    @Test
+    @DisplayName("예약자가 아닌 유저가 예약 삭제 시도시 실패")
+    void deleteFail2() {
+        //given
+        Member member = memberRepository.save(Member.builder()
+                .username("창근")
+                .email("dompoo@gmail.com")
+                .password("1234")
+                .build());
+
+        Reservation reservation = reservationRepository.save(Reservation.builder()
+                .member(member)
+                .date(LocalDate.of(2000, 12, 20))
+                .time(12)
+                .priority(1)
+                .build());
+
+        //when
+        DeleteFailException e = assertThrows(DeleteFailException.class, () ->
+                service.deleteReservation(member.getId() + 1, reservation.getId()));
+
+        //then
+        assertEquals(e.getMessage(), "삭제할 수 없습니다.");
+        assertEquals(e.statusCode(), "400");
     }
 }

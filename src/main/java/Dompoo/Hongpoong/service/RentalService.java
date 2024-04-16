@@ -48,15 +48,15 @@ public class RentalService {
                 .build());
     }
 
-    public RentalResponse getDetail(Long id) {
-        Rental rental = rentalRepository.findById(id)
+    public RentalResponse getDetail(Long rentalId) {
+        Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(RentalNotFound::new);
 
         return new RentalResponse(rental);
     }
 
-    public void editRental(Long memberId, Long id, RentalEditRequest request) {
-        Rental rental = rentalRepository.findById(id)
+    public void editRental(Long memberId, Long rentalId, RentalEditRequest request) {
+        Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(RentalNotFound::new);
 
         if (!rental.getToMember().getId().equals(memberId)) {
@@ -74,8 +74,8 @@ public class RentalService {
         if (request.getTime() != null) rental.setTime(request.getTime());
     }
 
-    public void deleteRental(Long memberId, Long id) {
-        Rental rental = rentalRepository.findById(id)
+    public void deleteRental(Long memberId, Long rentalId) {
+        Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(RentalNotFound::new);
 
         if (!rental.getToMember().getId().equals(memberId)) {
