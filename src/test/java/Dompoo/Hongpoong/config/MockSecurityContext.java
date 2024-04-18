@@ -2,28 +2,27 @@ package Dompoo.Hongpoong.config;
 
 import Dompoo.Hongpoong.domain.Member;
 import Dompoo.Hongpoong.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 public class MockSecurityContext implements WithSecurityContextFactory<WithMockMember> {
+
     private final MemberRepository memberRepository;
-    private final PasswordEncoder encoder;
 
     @Override
     public SecurityContext createSecurityContext(WithMockMember annotation) {
-        Member member = Member.builder()
+        Member member = memberRepository.save(Member.builder()
                 .email(annotation.email())
                 .username(annotation.username())
-                .password(encoder.encode(annotation.password()))
-                .build();
-
-        memberRepository.save(member);
+                .password(annotation.password())
+                .build());
 
         UserPrincipal principal = new UserPrincipal(member);
 
@@ -35,10 +34,5 @@ public class MockSecurityContext implements WithSecurityContextFactory<WithMockM
         context.setAuthentication(authToken);
 
         return context;
-    }
-
-    public MockSecurityContext(MemberRepository memberRepository, PasswordEncoder encoder) {
-        this.memberRepository = memberRepository;
-        this.encoder = encoder;
     }
 }
