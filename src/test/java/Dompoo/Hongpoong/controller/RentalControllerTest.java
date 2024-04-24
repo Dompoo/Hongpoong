@@ -41,7 +41,7 @@ class RentalControllerTest {
 
     private static final String RESPONSE_MEMBER_USERNAME = "창근";
     private static final String RESPONSE_MEMBER_EMAIL = "dompoo@gmail.com";
-    private static final String RESPONSE_MEMBER_PASSWORD = "RENTAL_COUNT234";
+    private static final String RESPONSE_MEMBER_PASSWORD = "1234";
     private static final String REQUEST_MEMBER_USERNAME = "윤호";
     private static final String REQUEST_MEMBER_EMAIL = "yoonH@naver.com";
     private static final String REQUEST_MEMBER_PASSWORD = "qwer";
