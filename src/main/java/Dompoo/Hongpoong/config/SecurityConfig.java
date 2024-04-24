@@ -28,7 +28,7 @@ import static org.springframework.boot.autoconfigure.security.servlet.PathReques
 import static org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN;
 
 @Configuration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity(debug = false)
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -40,18 +40,19 @@ public class SecurityConfig {
         return web -> web.ignoring()
                 .requestMatchers("/error")
                 .requestMatchers(toH2Console())
-                .requestMatchers("/favicon.ico");
+                .requestMatchers("/favicon.ico")
+                .requestMatchers("chat/**");
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/signup").permitAll()
-                        .requestMatchers("/auth/email").permitAll()
-                        .requestMatchers("/auth/email/accept").permitAll()
-                        .anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()
+//                        .requestMatchers("/auth/login").permitAll()
+//                        .requestMatchers("/auth/signup").permitAll()
+//                        .requestMatchers("/auth/email").permitAll()
+//                        .requestMatchers("/auth/email/accept").permitAll()
+//                        .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.addHeaderWriter(new XFrameOptionsHeaderWriter(SAMEORIGIN)))
