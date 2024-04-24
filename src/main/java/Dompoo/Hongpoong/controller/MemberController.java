@@ -1,7 +1,7 @@
 package Dompoo.Hongpoong.controller;
 
 import Dompoo.Hongpoong.config.UserPrincipal;
-import Dompoo.Hongpoong.request.Member.MemberEditRequest;
+import Dompoo.Hongpoong.request.member.MemberEditRequest;
 import Dompoo.Hongpoong.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

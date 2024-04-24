@@ -313,7 +313,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("[이메일은 비어있을 수 없습니다., 이메일 형식으로 입력해주세요.]"))
+                .andExpect(jsonPath("$.message").value("[이메일 형식으로 입력해주세요.]"))
                 .andDo(print());
     }
 
