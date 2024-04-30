@@ -1,6 +1,5 @@
 package Dompoo.Hongpoong.controller;
 
-import Dompoo.Hongpoong.domain.ChatRoom;
 import Dompoo.Hongpoong.request.chat.ChatRoomCreateRequest;
 import Dompoo.Hongpoong.response.ChatRoomResponse;
 import Dompoo.Hongpoong.service.ChatService;
@@ -17,7 +16,7 @@ public class ChatController {
     private final ChatService service;
 
     @PostMapping
-    public ChatRoom createRoom(@RequestBody ChatRoomCreateRequest request) {
+    public ChatRoomResponse createRoom(@RequestBody ChatRoomCreateRequest request) {
         return service.createRoom(request);
     }
 
