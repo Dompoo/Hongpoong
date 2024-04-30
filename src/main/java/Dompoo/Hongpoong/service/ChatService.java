@@ -1,56 +1,40 @@
 package Dompoo.Hongpoong.service;
 
 import Dompoo.Hongpoong.domain.ChatRoom;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
+import Dompoo.Hongpoong.repository.ChatRoomRepository;
+import Dompoo.Hongpoong.request.chat.ChatRoomCreateRequest;
+import Dompoo.Hongpoong.response.ChatRoomResponse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @Data
 public class ChatService {
 
-    private final ObjectMapper mapper;
-    private Map<String, ChatRoom> chatRooms;
+    private final ChatRoomRepository repository;
 
-    @PostConstruct
-    private void init() {
-        chatRooms = new LinkedHashMap<>();
-    }
-
-    public List<ChatRoom> findAllRoom(){
-        return new ArrayList<>(chatRooms.values());
-    }
-
-    public ChatRoom findRoomById(String roomId){
-        return chatRooms.get(roomId);
-    }
-
-    public ChatRoom createRoom(String name) {
-        String roomId = UUID.randomUUID().toString(); // 랜덤한 방 아이디 생성
-
-        // Builder 를 이용해서 ChatRoom 을 Building
-        ChatRoom room = ChatRoom.builder()
-                .roomId(roomId)
-                .name(name)
+    public ChatRoom createRoom(ChatRoomCreateRequest request){
+        ChatRoom chatRoom = ChatRoom.builder()
+                .name(request.getName())
                 .build();
-
-        chatRooms.put(roomId, room); // 랜덤 아이디와 room 정보를 Map 에 저장
-        return room;
+        return repository.save(chatRoom);
     }
 
-    public <T> void sendMessage(WebSocketSession session, T message) {
-        try{
-            session.sendMessage(new TextMessage(mapper.writeValueAsString(message)));
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
+    public List<ChatRoomResponse> findAll(){
+        return repository.findAll().stream()
+                .map(ChatRoomResponse::new)
+                .collect(Collectors.toList());
     }
+
+//    public ChatRoomDetailResponse findOne(Long roomId){
+//        ChatRoom chatRoom = repository.findById(roomId)
+//                .orElseThrow(ChatRoomNotFound::new);
+//
+//        return new ChatRoomDetailResponse(chatRoom);
+//    }
 }

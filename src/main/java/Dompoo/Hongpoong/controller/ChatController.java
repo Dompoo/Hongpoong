@@ -1,6 +1,8 @@
 package Dompoo.Hongpoong.controller;
 
 import Dompoo.Hongpoong.domain.ChatRoom;
+import Dompoo.Hongpoong.request.chat.ChatRoomCreateRequest;
+import Dompoo.Hongpoong.response.ChatRoomResponse;
 import Dompoo.Hongpoong.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,12 +17,17 @@ public class ChatController {
     private final ChatService service;
 
     @PostMapping
-    public ChatRoom createRoom(@RequestParam String name) {
-        return service.createRoom(name);
+    public ChatRoom createRoom(@RequestBody ChatRoomCreateRequest request) {
+        return service.createRoom(request);
     }
 
     @GetMapping
-    public List<ChatRoom> findAllRoom() {
-        return service.findAllRoom();
+    public List<ChatRoomResponse> findAllRoom() {
+        return service.findAll();
     }
+
+//    @GetMapping("/{roomId}")
+//    public ChatRoomDetailResponse findOneRoom(@PathVariable Long roomId) {
+//        return service.findOne(roomId);
+//    }
 }

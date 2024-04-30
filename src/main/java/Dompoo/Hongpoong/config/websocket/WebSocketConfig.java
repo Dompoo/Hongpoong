@@ -1,4 +1,4 @@
-package Dompoo.Hongpoong.config;
+package Dompoo.Hongpoong.config.websocket;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;

@@ -1,8 +1,7 @@
-package Dompoo.Hongpoong.config;
+package Dompoo.Hongpoong.config.websocket;
 
-import Dompoo.Hongpoong.domain.ChatMessage;
-import Dompoo.Hongpoong.domain.ChatRoom;
-import Dompoo.Hongpoong.service.ChatService;
+import Dompoo.Hongpoong.request.chat.ChatMessageCreateRequest;
+import Dompoo.Hongpoong.service.SocketService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,20 +18,17 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper;
 
-    private final ChatService service;
+    private final SocketService socketService;
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
         log.info("payload {}", payload);
 
-        ChatMessage chatMessage = objectMapper.readValue(payload, ChatMessage.class);
+        ChatMessageCreateRequest chatMessage = objectMapper.readValue(payload, ChatMessageCreateRequest.class);
         log.info("session {}", chatMessage.toString());
 
-        ChatRoom chatRoom = service.findRoomById(chatMessage.getRoomId());
-        log.info("room {}", chatRoom.toString());
-
-        chatRoom.handleAction(session, chatMessage, service);
+        socketService.handleAction(session, chatMessage);
     }
 
     @Override
