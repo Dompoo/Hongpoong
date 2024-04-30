@@ -1,5 +1,8 @@
 package Dompoo.Hongpoong.service;
 
+import Dompoo.Hongpoong.domain.ChatRoom;
+import Dompoo.Hongpoong.domain.Member;
+import Dompoo.Hongpoong.exception.ChatFailException;
 import Dompoo.Hongpoong.exception.ChatRoomNotFound;
 import Dompoo.Hongpoong.request.chat.ChatMessageCreateRequest;
 import Dompoo.Hongpoong.repository.ChatRoomRepository;
@@ -28,8 +31,13 @@ public class SocketService {
     private final ChatRoomRepository repository;
 
     public void handleAction(WebSocketSession session, ChatMessageCreateRequest message) {
-        repository.findById(message.getRoomId())
+        ChatRoom chatRoom = repository.findById(message.getRoomId())
                 .orElseThrow(ChatRoomNotFound::new);
+
+        //채팅방에 속해있지 않은 경우
+        if (!chatRoom.getMembers().stream().map(Member::getUsername).toList().contains(message.getSender())) {
+            throw new ChatFailException();
+        }
 
         //접속한 경우
         if (message.getType().equals(ChatMessageCreateRequest.MessageType.ENTER)) {
