@@ -1,0 +1,44 @@
+package Dompoo.Hongpoong.controller;
+
+import Dompoo.Hongpoong.request.info.InfoCreateRequest;
+import Dompoo.Hongpoong.response.InfoDetailResponse;
+import Dompoo.Hongpoong.response.InfoListResponse;
+import Dompoo.Hongpoong.service.InfoService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/info")
+public class InfoController {
+
+    private final InfoService service;
+
+    @PostMapping("")
+    public void createInfo(@RequestBody InfoCreateRequest request) {
+        service.addInfo(request);
+    }
+
+    @GetMapping("")
+    public List<InfoListResponse> getInfoList() {
+        return service.getList();
+    }
+
+    @GetMapping("/{infoId}")
+    public InfoDetailResponse getInfoDetail(@PathVariable Long infoId) {
+        return service.getDetail(infoId);
+    }
+
+    @PutMapping("/{infoId}")
+    public void editInfo(@PathVariable Long infoId, @RequestBody InfoCreateRequest request) {
+        service.editInfo(infoId, request);
+    }
+
+    @DeleteMapping("/{infoId}")
+    public void deleteInfo(@PathVariable Long infoId) {
+        service.deleteInfo(infoId);
+    }
+
+}
