@@ -1,6 +1,7 @@
 package Dompoo.Hongpoong.controller;
 
 import Dompoo.Hongpoong.request.info.InfoCreateRequest;
+import Dompoo.Hongpoong.request.info.InfoEditRequest;
 import Dompoo.Hongpoong.response.InfoDetailResponse;
 import Dompoo.Hongpoong.response.InfoListResponse;
 import Dompoo.Hongpoong.service.InfoService;
@@ -33,7 +34,7 @@ public class InfoController {
 
     //TODO: 관리자 API
     @PutMapping("/{infoId}")
-    public void editInfo(@PathVariable Long infoId, @RequestBody InfoCreateRequest request) {
+    public void editInfo(@PathVariable Long infoId, @RequestBody InfoEditRequest request) {
         service.editInfo(infoId, request);
     }
 

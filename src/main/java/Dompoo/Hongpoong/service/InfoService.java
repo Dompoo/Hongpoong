@@ -4,8 +4,10 @@ import Dompoo.Hongpoong.domain.Info;
 import Dompoo.Hongpoong.exception.InfoNotFound;
 import Dompoo.Hongpoong.repository.InfoRepository;
 import Dompoo.Hongpoong.request.info.InfoCreateRequest;
+import Dompoo.Hongpoong.request.info.InfoEditRequest;
 import Dompoo.Hongpoong.response.InfoDetailResponse;
 import Dompoo.Hongpoong.response.InfoListResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class InfoService {
 
@@ -35,12 +38,12 @@ public class InfoService {
 
     public InfoDetailResponse getDetail(Long infoId) {
         Info info = repository.findById(infoId)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(InfoNotFound::new);
 
         return new InfoDetailResponse(info);
     }
 
-    public void editInfo(Long infoId, InfoCreateRequest request) {
+    public void editInfo(Long infoId, InfoEditRequest request) {
         Info info = repository.findById(infoId)
                 .orElseThrow(InfoNotFound::new);
 
