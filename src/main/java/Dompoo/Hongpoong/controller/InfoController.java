@@ -31,11 +31,13 @@ public class InfoController {
         return service.getDetail(infoId);
     }
 
+    //TODO: 관리자 API
     @PutMapping("/{infoId}")
     public void editInfo(@PathVariable Long infoId, @RequestBody InfoCreateRequest request) {
         service.editInfo(infoId, request);
     }
 
+    //TODO: 관리자 API
     @DeleteMapping("/{infoId}")
     public void deleteInfo(@PathVariable Long infoId) {
         service.deleteInfo(infoId);
