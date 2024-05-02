@@ -299,4 +299,50 @@ class AuthServiceTest {
         assertEquals(e.getMessage(), ALREADY_USED_EMAIL);
     }
 
+    @Test
+    @DisplayName("화이트리스트 삭제")
+    void deleteWhiteList() {
+        //given
+        Whitelist whitelist = whitelistRepository.save(Whitelist.builder()
+                .email(EMAIL)
+                .isAccepted(true)
+                .build());
+
+        memberRepository.save(Member.builder()
+                .email(EMAIL)
+                .username(USERNAME)
+                .password(PASSWORD)
+                .build());
+
+        //when
+        service.deleteWhiteList(whitelist.getId());
+
+        //then
+        assertEquals(memberRepository.count(), 0);
+        assertEquals(whitelistRepository.count(), 0);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 화이트리스트 삭제")
+    void deleteWhiteListFail() {
+        //given
+        Whitelist whitelist = whitelistRepository.save(Whitelist.builder()
+                .email(EMAIL)
+                .isAccepted(true)
+                .build());
+
+        memberRepository.save(Member.builder()
+                .email(EMAIL)
+                .username(USERNAME)
+                .password(PASSWORD)
+                .build());
+
+        //when
+        EmailNotFound e = assertThrows(EmailNotFound.class, () ->
+                service.deleteWhiteList(whitelist.getId() + 1));
+
+        //then
+        assertEquals(e.statusCode(), "404");
+        assertEquals(e.getMessage(), "존재하지 않는 이메일입니다.");
+    }
 }

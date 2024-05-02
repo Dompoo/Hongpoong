@@ -26,6 +26,7 @@ public class AuthService {
     private final MemberRepository repository;
     private final WhitelistRepository whitelistRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MemberRepository memberRepository;
 
 
     public void signup(SignupRequest request) {
@@ -86,5 +87,16 @@ public class AuthService {
         return whitelistRepository.findAll()
                 .stream().map(EmailResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    public void deleteWhiteList(Long id) {
+        Whitelist whitelist = whitelistRepository.findById(id)
+                .orElseThrow(EmailNotFound::new);
+
+        //만약 해당 화이트리스트로 가입된 회원이 있다면 삭제
+        memberRepository.findByEmail(whitelist.getEmail())
+                .ifPresent(memberRepository::delete);
+
+        whitelistRepository.delete(whitelist);
     }
 }

@@ -18,8 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -613,4 +612,77 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("[인증오류] 권한이 없습니다."))
                 .andDo(print());
     }
+
+    @Test
+    @DisplayName("화이트리스트 삭제")
+    @WithMockMember(role = "ROLE_ADMIN")
+    void deleteWhiteList() throws Exception {
+        //given
+        Whitelist whitelist = whitelistRepository.save(Whitelist.builder()
+                .email(EMAIL)
+                .isAccepted(false)
+                .build());
+
+        memberRepository.save(Member.builder()
+                .email(EMAIL)
+                .username(USERNAME)
+                .password(PASSWORD)
+                .club(CLUB)
+                .build());
+
+        //expected
+        mockMvc.perform(delete("/auth/email/{id}", whitelist.getId()))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("회원은 화이트리스트 삭제할 수 없다.")
+    @WithMockMember
+    void deleteWhiteListFail1() throws Exception {
+        //given
+        Whitelist whitelist = whitelistRepository.save(Whitelist.builder()
+                .email(EMAIL)
+                .isAccepted(false)
+                .build());
+
+        memberRepository.save(Member.builder()
+                .email(EMAIL)
+                .username(USERNAME)
+                .password(PASSWORD)
+                .club(CLUB)
+                .build());
+
+        //expected
+        mockMvc.perform(delete("/auth/email/{id}", whitelist.getId()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("[인증오류] 권한이 없습니다."))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 화이트리스트 삭제")
+    @WithMockMember(role = "ROLE_ADMIN")
+    void deleteWhiteListFail2() throws Exception {
+        //given
+        Whitelist whitelist = whitelistRepository.save(Whitelist.builder()
+                .email(EMAIL)
+                .isAccepted(false)
+                .build());
+
+        memberRepository.save(Member.builder()
+                .email(EMAIL)
+                .username(USERNAME)
+                .password(PASSWORD)
+                .club(CLUB)
+                .build());
+
+        //expected
+        mockMvc.perform(delete("/auth/email/{id}", whitelist.getId() + 1))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("존재하지 않는 이메일입니다."))
+                .andDo(print());
+    }
+
+
 }
