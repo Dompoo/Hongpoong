@@ -363,7 +363,7 @@ class RentalControllerTest {
     @Test
     @DisplayName("대여 추가시 22시 이하의 시간이어야 한다.")
     @WithMockMember
-    void addOneFailRENTAL_COUNT0() throws Exception {
+    void addOneFail10() throws Exception {
         //given
         memberRepository.save(Member.builder()
                 .email(MEMBER2_EMAIL)
@@ -387,6 +387,30 @@ class RentalControllerTest {
                         .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("[22시 이하의 시간이어야 합니다.]"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("대여 추가시 자신에게 빌릴 수 없다.")
+    @WithMockMember
+    void addOneFail11() throws Exception {
+        //given
+        Member member = memberRepository.findAll().getFirst();
+
+        RentalCreateRequest request = RentalCreateRequest.builder()
+                .product(RENTAL_PRODUCT)
+                .count(RENTAL_COUNT)
+                .responseMember(member.getUsername())
+                .date(RENTAL_DATE)
+                .time(RENTAL_TIME)
+                .build();
+
+        //expected
+        mockMvc.perform(post("/rental")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("자신에게 대여할 수 없습니다."))
                 .andDo(print());
     }
 
