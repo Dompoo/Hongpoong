@@ -8,6 +8,7 @@ import Dompoo.Hongpoong.repository.WhitelistRepository;
 import Dompoo.Hongpoong.request.auth.AcceptEmailRequest;
 import Dompoo.Hongpoong.request.auth.SignupRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@Transactional
 @AutoConfigureMockMvc
 class AuthControllerTest {
 
@@ -405,6 +407,36 @@ class AuthControllerTest {
                         .content(json))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("[동아리는 비어있을 수 없습니다.]"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("회원가입시 이미 사용된 이메일을 사용할 수 없다.")
+    void signupFail12() throws Exception {
+        //given
+        Whitelist whitelist = whitelistRepository.save(Whitelist.builder()
+                .email(EMAIL)
+                .isAccepted(true)
+                .build());
+
+        whitelist.setIsUsed(true);
+
+        SignupRequest request = SignupRequest.builder()
+                .email(EMAIL)
+                .username(USERNAME)
+                .password1(PASSWORD)
+                .password2(PASSWORD)
+                .club(CLUB)
+                .build();
+
+        String json = objectMapper.writeValueAsString(request);
+
+        //expected
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("이미 회원가입된 이메일입니다."))
                 .andDo(print());
     }
 

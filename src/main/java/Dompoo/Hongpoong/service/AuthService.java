@@ -44,12 +44,18 @@ public class AuthService {
             throw new NotAcceptedMember();
         }
 
+        if (whitelist.getIsUsed()) {
+            throw new AlreadyUsedEmail();
+        }
+
         repository.save(Member.builder()
                 .email(request.getEmail())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword1()))
                 .club(request.getClub())
                 .build());
+
+        whitelist.setIsUsed(true);
     }
 
     public void addWhiteList(AddEmailRequest request) {
