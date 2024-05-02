@@ -1,9 +1,11 @@
 package Dompoo.Hongpoong.service;
 
 import Dompoo.Hongpoong.domain.Member;
+import Dompoo.Hongpoong.domain.Setting;
 import Dompoo.Hongpoong.domain.Whitelist;
 import Dompoo.Hongpoong.exception.*;
 import Dompoo.Hongpoong.repository.MemberRepository;
+import Dompoo.Hongpoong.repository.SettingRepository;
 import Dompoo.Hongpoong.repository.WhitelistRepository;
 import Dompoo.Hongpoong.request.auth.AcceptEmailRequest;
 import Dompoo.Hongpoong.request.auth.AddEmailRequest;
@@ -26,8 +28,7 @@ public class AuthService {
     private final MemberRepository repository;
     private final WhitelistRepository whitelistRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MemberRepository memberRepository;
-
+    private final SettingRepository settingRepository;
 
     public void signup(SignupRequest request) {
         if (!Objects.equals(request.getPassword1(), request.getPassword2())) {
@@ -49,11 +50,15 @@ public class AuthService {
             throw new AlreadyUsedEmail();
         }
 
-        repository.save(Member.builder()
+        Member member = repository.save(Member.builder()
                 .email(request.getEmail())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword1()))
                 .club(request.getClub())
+                .build());
+
+        settingRepository.save(Setting.builder()
+                .member(member)
                 .build());
 
         whitelist.setIsUsed(true);
@@ -94,8 +99,8 @@ public class AuthService {
                 .orElseThrow(EmailNotFound::new);
 
         //만약 해당 화이트리스트로 가입된 회원이 있다면 삭제
-        memberRepository.findByEmail(whitelist.getEmail())
-                .ifPresent(memberRepository::delete);
+        repository.findByEmail(whitelist.getEmail())
+                .ifPresent(repository::delete);
 
         whitelistRepository.delete(whitelist);
     }
