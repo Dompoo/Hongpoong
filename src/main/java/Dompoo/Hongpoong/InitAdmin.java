@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("dev")
+@Profile("develop")
 @RequiredArgsConstructor
 public class InitAdmin {
 
@@ -17,7 +17,7 @@ public class InitAdmin {
     @PostConstruct
     public void init() {
         Member admin = Member.builder()
-                .email("admin@gmail.com")
+                .email("dlckdrms0517@gmail.com")
                 .username("의장")
                 .password("qwer")
                 .club(Member.Club.SANTLE)

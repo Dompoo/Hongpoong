@@ -2,7 +2,7 @@ spring:
   application:
     name: Hongpoong
   profiles:
-    active: dev
+    active: local
     include: secret
 #    include: secret의 mysql 설정정보 가져옴
   jpa:
