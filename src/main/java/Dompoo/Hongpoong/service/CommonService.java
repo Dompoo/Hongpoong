@@ -1,10 +1,9 @@
 package Dompoo.Hongpoong.service;
 
-import Dompoo.Hongpoong.domain.Member;
 import Dompoo.Hongpoong.domain.Setting;
 import Dompoo.Hongpoong.exception.MemberNotFound;
 import Dompoo.Hongpoong.repository.MemberRepository;
-import Dompoo.Hongpoong.request.common.SettingRequest;
+import Dompoo.Hongpoong.request.common.SettingSaveRequest;
 import Dompoo.Hongpoong.response.SettingResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +17,14 @@ public class CommonService {
     private final MemberRepository memberRepository;
 
     public SettingResponse getSetting(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(MemberNotFound::new);
+        Setting setting = memberRepository.findById(memberId)
+                .orElseThrow(MemberNotFound::new)
+                .getSetting();
 
-        return new SettingResponse(member.getSetting());
+        return new SettingResponse(setting);
     }
 
-    public void setting(Long memberId, SettingRequest request) {
+    public void saveSetting(Long memberId, SettingSaveRequest request) {
         Setting setting = memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFound::new)
                 .getSetting();

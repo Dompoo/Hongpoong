@@ -14,6 +14,7 @@ public class Setting {
     private Long id;
 
     @OneToOne
+    @JoinColumn(name = "member_id")
     private Member member;
 
     private boolean push;
@@ -25,7 +26,7 @@ public class Setting {
     }
 
     public void setMember(Member member) {
-        this.member = member;
         member.setSetting(this);
+        this.member = member;
     }
 }

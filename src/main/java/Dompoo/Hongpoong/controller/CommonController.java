@@ -1,7 +1,7 @@
 package Dompoo.Hongpoong.controller;
 
 import Dompoo.Hongpoong.config.security.UserPrincipal;
-import Dompoo.Hongpoong.request.common.SettingRequest;
+import Dompoo.Hongpoong.request.common.SettingSaveRequest;
 import Dompoo.Hongpoong.response.SettingResponse;
 import Dompoo.Hongpoong.service.CommonService;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +20,8 @@ public class CommonController {
         return service.getSetting(principal.getMemberId());
     }
 
-    @PutMapping("/setting")
-    public void setting(@AuthenticationPrincipal UserPrincipal principal, @RequestBody SettingRequest request) {
-        service.setting(principal.getMemberId(), request);
+    @PostMapping("/setting")
+    public void saveSetting(@AuthenticationPrincipal UserPrincipal principal, @RequestBody SettingSaveRequest request) {
+        service.saveSetting(principal.getMemberId(), request);
     }
 }
